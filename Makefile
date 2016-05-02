@@ -45,7 +45,7 @@ CPPSOURCES=$(wildcard lib/*.cc lib/*.hh khmer/_khmer.cc) setup.py
 PYSOURCES=$(wildcard khmer/*.py scripts/*.py)
 SOURCES=$(PYSOURCES) $(CPPSOURCES) setup.py
 DEVPKGS=pep8==1.5.7 diff_cover autopep8 pylint coverage gcovr nose pep257 \
-	screed
+	screed hypothesis cpp-coveralls
 
 GCOVRURL=git+https://github.com/nschum/gcovr.git@never-executed-branches
 VERSION=$(shell git describe --tags --dirty | sed s/v//)
@@ -226,6 +226,13 @@ coverage-gcovr.xml: coverage-debug .coverage
           --gcov-exclude='.*zlib.*|.*bzip2.*|.*smhasher.*|.*seqan.*' \
 	  --exclude-unreachable-branches
 
+coverage-lcov.info: coverage-debug .coverage
+	lcov --capture --directory . --no-external --output-file coverage.info
+	lcov --remove coverage.info 'third-party/*' -o coverage-lcov.info
+
+lcov-report/index.html: coverage-lcov.info
+	genhtml coverage-lcov.info --output-directory lcov-report
+
 diff-cover: coverage-gcovr.xml coverage.xml
 	diff-cover coverage-gcovr.xml coverage.xml
 
@@ -274,6 +281,7 @@ libtest: FORCE
 test: FORCE
 	./setup.py develop
 	./setup.py nosetests --attr ${TESTATTR}
+
 
 sloccount.sc: ${CPPSOURCES} ${PYSOURCES} $(wildcard tests/*.py) Makefile
 	sloccount --duplicates --wide --details lib khmer scripts tests \

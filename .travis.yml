@@ -1,0 +1,23 @@
+language: python
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - g++-4.9
+            - gcc-4.9
+env:
+    global:
+        - CXX=g++-4.9
+        - CC=gcc-4.9
+python:
+    - 2.7
+    - 3.5
+install:
+  - make install-dep
+script:
+  - TESTATTR='hypothesis,!known_failing' make coverage-gcovr.xml
+after_success:
+  - coveralls -b . -r . --exclude third-party --gcov-options '\-lp' --gcov 'gcov-4.9'
+after_failure:
+  - coveralls -b . -r . --exclude third-party --gcov-options '\-lp' --gcov 'gcov-4.9'
